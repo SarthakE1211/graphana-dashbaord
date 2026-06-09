@@ -13,7 +13,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Calibri,sans-serif;}
   html,body{height:auto;min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  body{background:#f2eeee;}
+  body{background:#f2eeee;position:relative;}
 
   /* NAV */
   .topnav{background:var(--maroon);display:flex;align-items:center;justify-content:space-between;
@@ -157,11 +157,11 @@
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 
   /* ═══ MODAL ═══ */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
-    z-index:1000;align-items:center;justify-content:center;}
-  .modal-overlay.open{display:flex;}
+  .modal-overlay{display:none;position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,0.5);
+    z-index:1000;}
+  .modal-overlay.open{display:block;}
   .modal-box{background:#fff;border-radius:14px;width:900px;max-width:96vw;
-    max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.25);
+    margin:40px auto;overflow:visible;box-shadow:0 8px 40px rgba(0,0,0,0.25);
     animation:modalIn .18s ease;}
   @keyframes modalIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
   .modal-header{background:var(--maroon);color:#fff;padding:18px 24px;
@@ -959,12 +959,24 @@ function switchTab(name){
 
 // ── Modals ────────────────────────────────────────────
 function openModal(id){
-  document.getElementById('modal-'+id).classList.add('open');
-  document.body.style.overflow='hidden';
+  // Capture where the user clicked so the modal opens in view — works even when
+  // this page is inside an iframe taller than the visible window (position:fixed
+  // would otherwise center the modal far down the frame and clip it).
+  var ev = window.event;
+  var overlay = document.getElementById('modal-'+id);
+  // Dim layer spans the whole document, not just the viewport.
+  overlay.style.height = document.documentElement.scrollHeight + 'px';
+  overlay.classList.add('open');
+  var y = 40;
+  if (ev && ev.target){
+    var trigger = ev.target.closest('[onclick]');
+    if (trigger){ y = Math.max(20, trigger.getBoundingClientRect().top + window.scrollY); }
+  }
+  var box = overlay.querySelector('.modal-box');
+  if (box){ box.style.marginTop = y + 'px'; box.scrollIntoView({block:'nearest'}); }
 }
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
-  document.body.style.overflow='';
 }
 function closeModalOutside(e,id){
   if(e.target===document.getElementById(id)) closeModal(id);
@@ -973,7 +985,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     document.querySelectorAll('.modal-overlay.open').forEach(m=>{
       m.classList.remove('open');
-      document.body.style.overflow='';
     });
   }
 });
