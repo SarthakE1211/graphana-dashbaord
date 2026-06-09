@@ -12,8 +12,8 @@
     --amber:#E07B00; --yellow:#F5C518;
   }
   *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Calibri,sans-serif;}
-  html,body{height:auto;min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  body{background:#f2eeee;position:relative;}
+  html,body{height:100%;}
+  body{background:#f2eeee;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
   /* NAV */
   .topnav{background:var(--maroon);display:flex;align-items:center;justify-content:space-between;
@@ -33,7 +33,7 @@
 
   /* TABS */
   .tabbar{background:#fff;border-bottom:2px solid var(--lt-gray);display:flex;align-items:center;
-    padding:0 24px;position:sticky;top:0;z-index:99;}
+    padding:0 24px;flex:0 0 auto;z-index:99;}
   .tab{padding:14px 22px;font-size:13px;font-weight:600;cursor:pointer;color:var(--gray);
     border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;
     display:flex;align-items:center;gap:6px;}
@@ -41,7 +41,7 @@
   .tab.active{color:var(--maroon);border-bottom-color:var(--maroon);}
 
   /* CONTENT */
-  .content{padding:20px 24px 40px;}
+  .content{padding:20px 24px 40px;flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   .tab-panel{display:none;}
   .tab-panel.active{display:block;}
 
@@ -157,11 +157,11 @@
     color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 
   /* ═══ MODAL ═══ */
-  .modal-overlay{display:none;position:absolute;top:0;left:0;width:100%;background:rgba(0,0,0,0.5);
-    z-index:1000;}
-  .modal-overlay.open{display:block;}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+    z-index:1000;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
   .modal-box{background:#fff;border-radius:14px;width:900px;max-width:96vw;
-    margin:40px auto;overflow:visible;box-shadow:0 8px 40px rgba(0,0,0,0.25);
+    margin:24px auto;box-shadow:0 8px 40px rgba(0,0,0,0.25);
     animation:modalIn .18s ease;}
   @keyframes modalIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
   .modal-header{background:var(--maroon);color:#fff;padding:18px 24px;
@@ -959,21 +959,9 @@ function switchTab(name){
 
 // ── Modals ────────────────────────────────────────────
 function openModal(id){
-  // Capture where the user clicked so the modal opens in view — works even when
-  // this page is inside an iframe taller than the visible window (position:fixed
-  // would otherwise center the modal far down the frame and clip it).
-  var ev = window.event;
   var overlay = document.getElementById('modal-'+id);
-  // Dim layer spans the whole document, not just the viewport.
-  overlay.style.height = document.documentElement.scrollHeight + 'px';
   overlay.classList.add('open');
-  var y = 40;
-  if (ev && ev.target){
-    var trigger = ev.target.closest('[onclick]');
-    if (trigger){ y = Math.max(20, trigger.getBoundingClientRect().top + window.scrollY); }
-  }
-  var box = overlay.querySelector('.modal-box');
-  if (box){ box.style.marginTop = y + 'px'; box.scrollIntoView({block:'nearest'}); }
+  overlay.scrollTop = 0; // always start at the top of the modal
 }
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
